@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  meuphp1:
+    image: php1
+    container_name: meuphp1
+    ports:
+      - "8001:80"
+
+  meuphp2:
+    image: php2
+    container_name: meuphp2
+    ports:
+      - "8002:80"
+  meuphp3:
+    image: php3
+    container_name: meuphp3
+    ports:
+      - "8003:80"
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - meuphp1
+      - meuphp2
+      - meuphp3
+

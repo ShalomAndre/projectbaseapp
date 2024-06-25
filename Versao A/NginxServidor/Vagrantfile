@@ -1,0 +1,40 @@
+Vagrant.configure("2") do |config|
+    config.vm.define "proxy" do |proxy|
+      proxy.vm.box = "bento/ubuntu-22.04"
+      proxy.vm.network "private_network", ip: "192.168.44.10"
+      
+      # Sincroniza a pasta local ./public com /var/www/html na VM
+      proxy.vm.synced_folder "./public", "/var/www/html", create: true, owner: "www-data", group: "www-data"
+      
+      # Provisione usando um script inline
+      proxy.vm.provision "shell", inline: <<-SHELL
+        # Atualiza os pacotes e instala o Nginx
+        sudo apt-get update
+        sudo apt-get install -y nginx
+  
+        # Configurações adicionais do Nginx, se necessário
+        cat <<EOL | sudo tee /etc/nginx/sites-available/default
+        server {
+            listen 80 default_server;
+            listen [::]:80 default_server;
+  
+            root /var/www/html;
+            index index.html index.htm;
+  
+            server_name _;
+  
+            location / {
+                try_files $uri $uri/ =404;
+            }
+        }
+        EOL
+  
+        # Reinicia o Nginx para aplicar as mudanças
+        sudo systemctl restart nginx
+  
+        # Habilita o Nginx para iniciar no boot
+        sudo systemctl enable nginx
+      SHELL
+    end
+  end
+  
